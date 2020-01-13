@@ -1,8 +1,31 @@
+k8s:
 参考：https://www.cnblogs.com/UniqueColor/p/7590592.html
 k8s是一个集群，全称kubernetes。Hadoop也是集群，但是比k8s早出现。两者各有优劣
 k8s中有1个主节点和若干和次节点（node）
 k8s集群由资源组成，一开始我以为由node组成，百度之后发现并不是，node只是集群中的资源之一。资源类别包括：资源对象、配置对象、存储对象、策略对象策略对象。
 pod是集群中能够被创建、调度和管理的最小单元，独有IP（删除后再创建ip将会改变，慎用），由一个或者多个容器组成，同一pod内的容器共享这个pod的资源。即使是不同node中的pod，也可以相互访问。Pod也是资源的一种。
 service也是资源的一种，集群通过service与外界进行联系，拥有集群内唯一私有ip和对外端口。还能做负载均衡和服务发现（这不是和springcloud中的eureka很相似吗）。
-架构图：
- 
+Deployment：资源的一种，控制器，调度协调资源使得相应的应用能跑起来
+PV、PVC：资源的一种，存储相关，volume存储空间会被分成很多PV资源，由PVC进行调度使用，pod,pvc,pv,后端存储的关系如下：pv关联到某种后端存储，pvc申请pv资源，pod使用pvc。
+Namespace：可以将不同的应用创建到不同namespace中，便于管理，操作
+探针：有livenessprobe存活探针和readnessprobe就绪探针，livenessprobe主要用于判断container是否处于运行状态。Readness主要用于判断服务是否已经正常启动工作。主要有三种探针判断，exec是执行shell脚本判断，httpget是通过container的IP、port、path判断，tcpsocket通过port+IP进行判断。作用就是对探测到故障的container后对其进行隔离或重启
+
+nginx反向代理调试：
+修改nginx.conf文件中server的以下几个节点：
+1、	listen 监听端口号(这里注意，HTTPS 的固定端口号是 443，不同于 HTTP 的 80 端口)
+2、	location 通过指定模式来与客户端请求的URI相匹配（~表示指定的正则表达式要区分大小写）
+3、	location中的root：最上层目录的定义（还有alias是一个目录别名的定义，后面必须用/结束，否则找不到文件）
+4、	location中的try_files /$1 @pproxy：表示匹配到相应的URI之后，会自动到root目录下找（.*）的文件，如果找不到，会去@pproxy设置的服务器端口中去找
+
+负载均衡转发：
+四层转发：
+tcp层负载均衡，高性能，简单，ip+port,不对请求做任何操作，直接路由
+七层转发：
+应用层（http协议层）负载均衡 中等性能，复杂，对系统性能要求高，可以对请求进行http协议层的处理操作，更安全，客户端与服务端不直接接触，而是通多代理接触
+
+zookeeper：
+是什么：分布式服务框架，apache hadoop的子项目，通俗说就是文件系统+监听通知系统
+两大特性：
+1、	客户端如果对zookeeper的一个数据节点注册Watcher监听，那个当该数据节点的内容或是其子节点列表发生变更时，zookeeper服务器就会向订阅的客户端发送变更通知
+2、	对在zookeeper上创建的临时节点，一旦客户端与服务器之间的会话失效，那么该临时节点也会被自动清除
+
